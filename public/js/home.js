@@ -20,6 +20,14 @@ document.getElementById("transaction-form").addEventListener("submit", function(
     const date = document.getElementById("date-input").value;
     const type = document.querySelector('input[name="type-input"]:checked').value;
 
+    const totalAtual = getCurrentTotal();
+
+    // VERIFICANDO LIMITE DE SAÍDA
+    if (type === "2" && value > totalAtual) {
+        alert("Você não tem saldo suficiente para essa retirada!");
+        return;
+    }
+
     data.transactions.unshift({
         value: value, type: type, description: description, date: date
     });
@@ -143,6 +151,20 @@ function getCashOut() {
 
         document.getElementById("cash-out-list").innerHTML = cashInHtml;
     }
+}
+
+function getCurrentTotal() {
+    let total = 0;
+
+    data.transactions.forEach((item) => {
+        if (item.type === "1") {
+            total += item.value;
+        } else {
+            total -= item.value;
+        }
+    });
+
+    return total;
 }
 
 function getTotal() {
