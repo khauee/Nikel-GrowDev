@@ -8,7 +8,7 @@ let data = {
 
 document.getElementById("button-logout").addEventListener("click", logout);
 
-//ADICIONAR LANÇAMENTO
+// ADICIONAR LANÇAMENTO
 document.getElementById("transaction-form").addEventListener("submit", function(e) {
     e.preventDefault();
 
@@ -18,7 +18,10 @@ document.getElementById("transaction-form").addEventListener("submit", function(
     const type = document.querySelector('input[name="type-input"]:checked').value;
 
     data.transactions.unshift({
-        value: value, type: type, description: description, date: date
+        value: value,
+        type: type,
+        description: description,
+        date: date
     });
 
     saveData(data);
@@ -26,37 +29,37 @@ document.getElementById("transaction-form").addEventListener("submit", function(
     myModal.hide();
 
     getTransactions();
+    updateTotal();
 
     alert("Lançamento adicionado com sucesso.");
-
 });
 
 checkLogged();
 
+
 function checkLogged() {
-    if(session) {
+    if (session) {
         sessionStorage.setItem("logged", session);
         logged = session;
     }
 
-    if(!logged) {
+    if (!logged) {
         window.location.href = "index.html";
         return;
     }
 
     const dataUser = localStorage.getItem(logged);
-    if(dataUser) {
+    if (dataUser) {
         data = JSON.parse(dataUser);
     }
 
     getTransactions();
-
+    updateTotal();
 }
 
 function logout() {
     sessionStorage.removeItem("logged");
     localStorage.removeItem("session");
-
     window.location.href = "index.html";
 }
 
@@ -64,13 +67,10 @@ function getTransactions() {
     const transactions = data.transactions;
     let transactionsHtml = ``;
 
-    if(transactions.length) {
-        transactions.forEach((item) => {
+    if (transactions.length) {
+        transactions.forEach((item, index) => {
             let type = "Entrada";
-
-            if(item.type === "2") {
-                type = "Saída";
-            }
+            if (item.type === "2") type = "Saída";
 
             transactionsHtml += `
                 <tr>
@@ -78,15 +78,52 @@ function getTransactions() {
                     <td>${item.value.toFixed(2)}</td>
                     <td>${type}</td>
                     <td>${item.description}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="deleteTransaction(${index})">
+                            Excluir
+                        </button>
+                    </td>
                 </tr>
-            `
-        })
+            `;
+        });
     }
 
     document.getElementById("transactions-list").innerHTML = transactionsHtml;
-
 }
 
+
+// FUNÇÃO PARA EXCLUIR TRANSAÇÃO DE ENTRADA OU SAÍDA
+function deleteTransaction(index) {
+    if (confirm("Deseja realmente excluir esta transação?")) {
+
+        data.transactions.splice(index, 1); 
+
+        saveData(data);  
+        getTransactions();
+        updateTotal();
+
+        alert("Transação excluída com sucesso.");
+    }
+}
+
+
+// FUNÇÃO PARA RECALCULAR APÓS EXCLUSÃO
+function updateTotal() {
+    let total = 0;
+
+    data.transactions.forEach(item => {
+        if (item.type === "1") total += item.value;  
+        else total -= item.value;                    
+    });
+
+    const totalDisplay = document.getElementById("total-display");
+    if (totalDisplay) {
+        totalDisplay.innerText = total.toFixed(2);
+    }
+}
+
+
+// SALVAR NO LOCALSTORAGE
 function saveData(data) {
     localStorage.setItem(data.login, JSON.stringify(data));
 }
